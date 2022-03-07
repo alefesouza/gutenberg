@@ -54,6 +54,20 @@ function fixPlaceholderSelection( defaultView ) {
 	selection.collapseToStart();
 }
 
+function isSelectionOutOfBounds( element ) {
+	const { ownerDocument } = element;
+
+	if ( ownerDocument.activeElement !== element ) {
+		return true;
+	}
+
+	const { defaultView } = ownerDocument;
+	const selection = defaultView.getSelection();
+	const { anchorNode, focusNode } = selection;
+
+	return ! element.contains( anchorNode ) || ! element.contains( focusNode );
+}
+
 export function useInputAndSelection( props ) {
 	const propsRef = useRef( props );
 	propsRef.current = props;
@@ -136,11 +150,7 @@ export function useInputAndSelection( props ) {
 			// the rich text instance (writing flow), call `onSelectionChange`
 			// for the rich text instance that contains the start or end of the
 			// selection.
-			if ( ownerDocument.activeElement !== element ) {
-				if ( ! ownerDocument.activeElement.contains( element ) ) {
-					return;
-				}
-
+			if ( isSelectionOutOfBounds( element ) ) {
 				const selection = defaultView.getSelection();
 				const { anchorNode, focusNode } = selection;
 
@@ -169,6 +179,10 @@ export function useInputAndSelection( props ) {
 					record.current.activeFormats = EMPTY_ACTIVE_FORMATS;
 					onSelectionChange( undefined, offset );
 				}
+				return;
+			}
+
+			if ( ownerDocument.activeElement !== element ) {
 				return;
 			}
 

@@ -56,7 +56,6 @@ export function useMultiSelection( clientId ) {
 				// If no selection is found, end multi selection and disable the
 				// contentEditable wrapper.
 				if ( ! selection.rangeCount || selection.isCollapsed ) {
-					setContentEditableWrapper( node, false );
 					return;
 				}
 
@@ -72,8 +71,6 @@ export function useMultiSelection( clientId ) {
 					// selection. Additionally, the contentEditable wrapper can
 					// now be disabled again.
 					if ( isSelectionEnd ) {
-						setContentEditableWrapper( node, false );
-
 						if ( selection.rangeCount ) {
 							const {
 								commonAncestorContainer,
@@ -129,6 +126,7 @@ export function useMultiSelection( clientId ) {
 				rafId = defaultView.requestAnimationFrame( () => {
 					onSelectionChange( { isSelectionEnd: true } );
 					stopMultiSelect();
+					setContentEditableWrapper( node, false );
 				} );
 			}
 
@@ -154,15 +152,15 @@ export function useMultiSelection( clientId ) {
 					onSelectionChange
 				);
 				defaultView.addEventListener( 'mouseup', onSelectionEnd );
+			}
 
+			function onMouseDown( event ) {
 				// Allow cross contentEditable selection by temporarily making
 				// all content editable. We can't rely on using the store and
 				// React because re-rending happens too slowly. We need to be
 				// able to select across instances immediately.
 				setContentEditableWrapper( node, true );
-			}
 
-			function onMouseDown( event ) {
 				// The main button.
 				// https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
 				if ( ! isSelectionEnabled() || event.button !== 0 ) {
@@ -197,7 +195,6 @@ export function useMultiSelection( clientId ) {
 						// Handle the case of having selected a parent block and
 						// then shift+click on a child.
 						if ( start !== end ) {
-							setContentEditableWrapper( node, true );
 							multiSelect( start, end );
 							event.preventDefault();
 						}
